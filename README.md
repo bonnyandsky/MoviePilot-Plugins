@@ -1,5 +1,5 @@
 ## 插件介绍
-项目主页：https://github.com/bonnyandsky/MoviePilot-Plugins
+项目主页：https://github.com/suraxiuxiu/MoviePilot-Plugins
 
 自动检测动态公网IP并应用到企业微信应用可信IP  
 微信通知代理地址记得改回官方地址：https://qyapi.weixin.qq.com/ 并重启MP
