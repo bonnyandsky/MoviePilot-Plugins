@@ -26,7 +26,7 @@ class WeWorkIPPW(_PluginBase):
     # 插件图标
     plugin_icon = "https://github.com/suraxiuxiu/MoviePilot-Plugins/blob/main/icons/micon.png?raw=true"
     # 插件版本
-    plugin_version = "2.4.2"
+    plugin_version = "2.4.3"
     # 插件作者
     plugin_author = "suraxiuxiu"
     # 作者主页
@@ -385,7 +385,8 @@ class WeWorkIPPW(_PluginBase):
                     cookie_header = self._cookie_header
                 else:
                     for domain, cookie in cookies.items():
-                        if domain == ".work.weixin.qq.com":
+                        # MoviePilot 的 CookieCloud helper 可能返回带点或不带点的域名键。
+                        if str(domain).lstrip(".").lower() == "work.weixin.qq.com":
                             cookie_header = cookie
                             break
                     if cookie_header == '':
