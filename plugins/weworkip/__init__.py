@@ -28,13 +28,13 @@ class WeWorkIP(_PluginBase):
     # 插件描述
     plugin_desc = "!!Docker用户请使用Docker版!!定时获取最新动态公网IP，配置到企业微信应用的可信IP列表里。"
     # 插件图标
-    plugin_icon = "https://github.com/suraxiuxiu/MoviePilot-Plugins/blob/main/icons/micon.png?raw=true"
+    plugin_icon = "https://github.com/bonnyandsky/MoviePilot-Plugins/blob/main/icons/micon.png?raw=true"
     # 插件版本
     plugin_version = "2.5.1"
     # 插件作者
-    plugin_author = "suraxiuxiu"
+    plugin_author = "bonnyandsky"
     # 作者主页
-    author_url = "https://github.com/suraxiuxiu/MoviePilot-Plugins"
+    author_url = "https://github.com/bonnyandsky/MoviePilot-Plugins"
     # 插件配置项ID前缀
     plugin_config_prefix = "weworkip_"
     # 加载顺序
@@ -1066,7 +1066,7 @@ class WeWorkIP(_PluginBase):
                                         "props": {
                                             "type": "info",
                                             "variant": "tonal",
-                                            "text": "具体介绍和其他问题在项目主页，推荐先看一次:https://github.com/suraxiuxiu/MoviePilot-Plugins",
+                                            "text": "具体介绍和其他问题在项目主页，推荐先看一次:https://github.com/bonnyandsky/MoviePilot-Plugins",
                                         },
                                     }
                                 ],
