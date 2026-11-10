@@ -9,7 +9,7 @@
         "level": 2,
         "system_version": ">=3.0.0",
         "history": {
-            "v3.0.0": "MoviePilot V3专用版本；作者和项目主页指向bonnyandsky/MoviePilot-Plugins；兼容CookieCloud企微域名键格式。"
+            "v3.0.0": "迁移为 MoviePilot V3 专用实现；兼容CookieCloud带点与不带点的企微域名键。"
         }
     }
 }
