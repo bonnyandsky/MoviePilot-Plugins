@@ -1,4 +1,5 @@
 import base64
+from contextlib import contextmanager
 import re
 import os
 import time
@@ -16,7 +17,7 @@ from app.sdk.plugin import _PluginBase
 from app.sdk.config import settings
 from app.helper.cookiecloud import CookieCloudHelper
 
-from playwright.sync_api import sync_playwright
+from app.sdk.browser import launch_browser_context
 
 class WeWorkIPPW(_PluginBase):
     # 插件名称
@@ -26,7 +27,7 @@ class WeWorkIPPW(_PluginBase):
     # 插件图标
     plugin_icon = "https://github.com/bonnyandsky/MoviePilot-Plugins/blob/main/icons/micon.png?raw=true"
     # 插件版本
-    plugin_version = "3.0.0"
+    plugin_version = "3.0.1"
     # 插件作者
     plugin_author = "bonnyandsky"
     # 作者主页
@@ -251,41 +252,54 @@ class WeWorkIPPW(_PluginBase):
             logger.warning(f"{url}获取IP失败,Error: {e}")
             return "获取IP失败"
             
+    @contextmanager
+    def _managed_browser_context(self):
+        """
+        通过 MoviePilot V3 浏览器 SDK 启动 CloakBrowser，并确保退出时关闭上下文。
+        """
+        context = launch_browser_context(headless=True)
+        try:
+            yield context
+        finally:
+            try:
+                context.close()
+            except Exception as e:
+                logger.warning(f"关闭企微浏览器上下文失败: {e}")
+
     def ChangeIP(self):
         logger.info("开始请求企业微信管理更改可信IP")
         if not self.check_connect():
             logger.error("网络连接失败,跳过本次更改IP")
             return
-        try:    
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context()
+        try:
+            with self._managed_browser_context() as context:
                 cookie = self.get_cookie()
                 if cookie == '':
                     logger.error('cookie为空,请检查CC配置和插件手动填写项')
-                    browser.close()
                     self._cookie_valid = False
                     return
                 context.add_cookies(cookie)
                 page = context.new_page()
-                page.goto(self._urls[0])
+                page.goto(self._urls[0], wait_until="domcontentloaded", timeout=30000)
                 time.sleep(1)
                 login = page.locator('.login_stage_title_text')
                 # 检查登录元素是否可见
                 if login.is_visible():
                     logger.info("cookie失效,请重新获取")
                     self._cookie_valid = False
-                    browser.close()
                     return
                 else:
                     logger.info("加载企微管理界面成功")
                     self._cookie_valid = True
-                for index, url in enumerate(self._urls):           
+                for index, url in enumerate(self._urls):
                     logger.info(f"正在更改第{index+1}个应用的可信IP")
-                    page.goto(url)
-                    page.wait_for_selector('div.app_card_operate.js_show_ipConfig_dialog')
+                    page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    page.wait_for_selector(
+                        'div.app_card_operate.js_show_ipConfig_dialog',
+                        timeout=15000,
+                    )
                     page.locator('div.app_card_operate.js_show_ipConfig_dialog').click()
-                    page.wait_for_selector('textarea.js_ipConfig_textarea')
+                    page.wait_for_selector('textarea.js_ipConfig_textarea', timeout=15000)
                     input_area = page.locator('textarea.js_ipConfig_textarea')
                     confirm = page.locator('.js_ipConfig_confirmBtn')
                     existing_ip = input_area.input_value()
@@ -297,23 +311,19 @@ class WeWorkIPPW(_PluginBase):
                     time.sleep(1)
                     logger.info(f"更改第{index+1}个应用的可信IP成功")
                 self._ip_changed = True
-                browser.close() 
         except Exception as e:
             logger.error(f"更改可信IP失败:{e}")
-    
-    def refresh_cookie(self,_login=True):
+
+    def refresh_cookie(self, _login=True):
         logger.info("开始刷新企业微信缓存")
         if not self.check_connect():
             logger.error("网络连接失败,跳过本次缓存保活")
             return
-        try:    
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                context = browser.new_context()
+        try:
+            with self._managed_browser_context() as context:
                 cookie = self.get_cookie()
                 if cookie == '' or cookie == ['']:
                     logger.error('cookie为空,请检查CC配置和插件手动填写项')
-                    browser.close()
                     self._cookie_valid = False
                     if self._schedule_login:
                         if self._scheduler.get_job("refresh_cookie"):
@@ -326,10 +336,10 @@ class WeWorkIPPW(_PluginBase):
                     return
                 context.add_cookies(cookie)
                 page = context.new_page()
-                page.goto(self._urls[0])
+                page.goto(self._urls[0], wait_until="domcontentloaded", timeout=30000)
                 time.sleep(2)
                 login = page.locator('.login_stage_title_text')
-            # 检查登录元素是否可见
+                # 检查登录元素是否可见
                 if login.is_visible():
                     logger.info("cookie失效,请重新获取")
                     self._cookie_valid = False
@@ -344,16 +354,15 @@ class WeWorkIPPW(_PluginBase):
                 else:
                     logger.info("cookie有效校验成功")
                     self._cookie_valid = True
-                browser.close()
             self.__update_config()
         except Exception as e:
-                logger.error(f"cookie校验失败:{e}") 
-                if "Timeout" in str(e):
-                    logger.info("检测可能连接超时,跳过本次刷新") 
-                else:
-                    self._cookie_valid = False
-                self.__update_config()   
-    
+            logger.error(f"cookie校验失败:{e}")
+            if "Timeout" in str(e):
+                logger.info("检测可能连接超时,跳过本次刷新")
+            else:
+                self._cookie_valid = False
+            self.__update_config()
+
     def parse_cookie_header(self,cookie_header):
         try:
             cookies = []
@@ -419,13 +428,11 @@ class WeWorkIPPW(_PluginBase):
                 self._scheduler.remove_job("wwlogin")
             return
         try:
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
-                self._driver = browser
-                context = browser.new_context()
+            with self._managed_browser_context() as context:
+                self._driver = context
                 try:
                     page = context.new_page()
-                    page.goto(self._urls[0])
+                    page.goto(self._urls[0], wait_until="domcontentloaded", timeout=30000)
                     iframe_element = page.frame_locator('iframe[src*="login_qrcode"]')
                     qr_img_element = iframe_element.locator('.qrcode_login_img')
                     qr_img_element.wait_for(state="visible", timeout=2000)
@@ -433,7 +440,7 @@ class WeWorkIPPW(_PluginBase):
                     base_url = page.url
                     absolute_url = urljoin(base_url, qr_img_relative_url)
                     self.post_message(channel=MessageChannel.Wechat,mtype=NotificationType.Plugin,title = "点击扫描二维码登录企业微信",image=absolute_url,link=absolute_url,userid=self._qr_send_users)
-                    response = requests.get(absolute_url)
+                    response = requests.get(absolute_url, timeout=15)
                     if response.status_code == 200:
                         with open(self.qr_path, "wb") as file:
                             file.write(response.content)
@@ -472,7 +479,7 @@ class WeWorkIPPW(_PluginBase):
                                     page.wait_for_timeout(1000)
                                     wait_time += 1
                                     if wait_time > 5:
-                                        break                          
+                                        break
                                 if 'mobile_confirm' in page.url:
                                     self.post_message(channel=MessageChannel.Wechat,mtype=NotificationType.Plugin,title = "登录失败,请检查验证码并重新发送",userid=self._qr_send_users)
                                     logger.info("登录失败,请检查验证码并重新发送")
@@ -492,15 +499,15 @@ class WeWorkIPPW(_PluginBase):
                 except Exception as e:
                     logger.error(f"登录失败:{e}")
                     self.login_fail()
-                browser.close()
-                self._driver = None
+                finally:
+                    self._driver = None
             self.__update_config()
             if os.path.exists(self.qr_path):
                 os.remove(self.qr_path)
         except Exception as e:
-                logger.error(f"登录失败:{e}")
-                self.login_fail()
-    
+            logger.error(f"登录失败:{e}")
+            self.login_fail()
+
     def create_refresh_job(self):
         logger.info("创建定时刷新企业微信缓存任务")
         try:
