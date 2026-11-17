@@ -10,7 +10,7 @@
         "system_version": ">=3.0.0",
         "history": {
             "v3.0.0": "迁移为 MoviePilot V3 专用实现；兼容CookieCloud带点与不带点的企微域名键。",
-            "v3.0.1": "改用 MoviePilot V3 浏览器 SDK 启动 CloakBrowser；增加导航超时并确保浏览器上下文在异常时关闭。"
+            "v3.0.1": "改用 MoviePilot V3 浏览器 SDK 启动 CloakBrowser；弃用ms-playwright。增加导航超时并确保浏览器上下文在异常时关闭，修复CPU异常占用问题。"
         }
     }
 }
