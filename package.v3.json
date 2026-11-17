@@ -1,16 +1,17 @@
 {
-    "WeWorkIPPW": {
-        "name": "企微配置IPpw版",
+    "QYWeiXinIP": {
+        "name": "企微动态可信IP",
         "description": "Docker版企业微信可信IP动态更新插件，支持CookieCloud和扫码登录。",
         "labels": "消息通知",
-        "version": "3.0.1",
+        "version": "3.0.2",
         "icon": "https://github.com/bonnyandsky/MoviePilot-Plugins/blob/main/icons/micon.png?raw=true",
         "author": "bonnyandsky",
         "level": 2,
         "system_version": ">=3.0.0",
         "history": {
             "v3.0.0": "迁移为 MoviePilot V3 专用实现；兼容CookieCloud带点与不带点的企微域名键。",
-            "v3.0.1": "改用 MoviePilot V3 浏览器 SDK 启动 CloakBrowser；弃用ms-playwright。增加导航超时并确保浏览器上下文在异常时关闭，修复CPU异常占用问题。"
+            "v3.0.1": "改用 MoviePilot V3 浏览器 SDK 启动 CloakBrowser；弃用ms-playwright。增加导航超时并确保浏览器上下文在异常时关闭，修复CPU异常占用问题。",
+            "v3.0.2": "插件 ID 更名为 QYWeiXinIP，显示名称改为企微动态可信IP；首次启用时迁移旧 WeWorkIPPW 配置。"
         }
     }
 }
