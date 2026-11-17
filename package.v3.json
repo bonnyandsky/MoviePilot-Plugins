@@ -3,13 +3,14 @@
         "name": "企微配置IPpw版",
         "description": "Docker版企业微信可信IP动态更新插件，支持CookieCloud和扫码登录。",
         "labels": "消息通知",
-        "version": "3.0.0",
+        "version": "3.0.1",
         "icon": "https://github.com/bonnyandsky/MoviePilot-Plugins/blob/main/icons/micon.png?raw=true",
         "author": "bonnyandsky",
         "level": 2,
         "system_version": ">=3.0.0",
         "history": {
-            "v3.0.0": "迁移为 MoviePilot V3 专用实现；兼容CookieCloud带点与不带点的企微域名键。"
+            "v3.0.0": "迁移为 MoviePilot V3 专用实现；兼容CookieCloud带点与不带点的企微域名键。",
+            "v3.0.1": "改用 MoviePilot V3 浏览器 SDK 启动 CloakBrowser；增加导航超时并确保浏览器上下文在异常时关闭。"
         }
     }
 }
